@@ -155,7 +155,7 @@ ROOM_NAMES = ["Living Room", "Bedroom 1", "Bedroom 2", "Bedroom 3",
 # ---------------------------------------------------------------------------
 
 if "num_units" not in st.session_state:
-    st.session_state["num_units"] = 1
+    st.session_state["num_units"] = 2
 if "outdoor_temp" not in st.session_state:
     st.session_state["outdoor_temp"] = 35.0
 if "duration_h" not in st.session_state:

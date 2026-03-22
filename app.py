@@ -185,7 +185,7 @@ for i in range(8):   # pre-init up to 8 units
 with st.sidebar:
     st.markdown("## 🌍 Live Weather")
     city_input = st.text_input("City", value="Chennai")
-    if st.button("🌡️ Fetch Live Temperature", use_container_width=True):
+    if st.button("🌡️ Fetch Live Temperature", width='stretch'):
         with st.spinner("Fetching..."):
             result = get_live_temp(city_input)
         if result["error"]:
@@ -226,7 +226,7 @@ with st.sidebar:
     }
     cols = st.columns(2)
     for i, (label, vals) in enumerate(scenarios.items()):
-        if cols[i % 2].button(label, use_container_width=True):
+        if cols[i % 2].button(label, width='stretch'):
             for k, v in vals.items():
                 st.session_state[k] = v
             st.rerun()
@@ -542,7 +542,7 @@ for tab, (label, df, mdl, sim, hvac, room) in zip(tabs[:-1], results):
         m6.metric("Time to Setpoint",
                   f"{t2sp:.0f} min" if t2sp is not None else "Not reached")
 
-        st.plotly_chart(build_unit_chart(df, sim, label), use_container_width=True)
+        st.plotly_chart(build_unit_chart(df, sim, label), width='stretch')
 
         with st.expander("🏗️ Room Physics Details"):
             area_sqft = st.session_state[f"u{list(t for t,*_ in results).index(label)}_floor_area"]
@@ -579,12 +579,12 @@ with tabs[-1]:
             "Cost (₹)":       round(final["energy_kwh"] * st.session_state["electricity_rate"], 2),
             "Eff. COP":       round(eff_cop, 2),
             "WindFree (%)":   round(wf_pct, 0),
-            "To Setpoint (min)": round(t2sp, 0) if t2sp else "—",
+            "To Setpoint (min)": round(t2sp, 0) if t2sp else None,
         })
 
     st.dataframe(
         pd.DataFrame(rows).set_index("Room"),
-        use_container_width=True,
+        width='stretch',
     )
 
     # Comparison bar charts
@@ -606,7 +606,7 @@ with tabs[-1]:
             margin=dict(t=50, b=40),
             yaxis_title="kWh",
         )
-        st.plotly_chart(fig_e, use_container_width=True)
+        st.plotly_chart(fig_e, width='stretch')
 
     with bc2:
         fig_c = go.Figure(go.Bar(
@@ -622,7 +622,7 @@ with tabs[-1]:
             margin=dict(t=50, b=40),
             yaxis_title="COP",
         )
-        st.plotly_chart(fig_c, use_container_width=True)
+        st.plotly_chart(fig_c, width='stretch')
 
     # Temperature overlay — all units on one chart
     st.markdown("### Temperature Curves — All Rooms")
@@ -646,7 +646,7 @@ with tabs[-1]:
         legend=dict(orientation="h", y=1.12),
         margin=dict(t=30, b=40),
     )
-    st.plotly_chart(fig_all, use_container_width=True)
+    st.plotly_chart(fig_all, width='stretch')
 
     total_energy = sum(df.iloc[-1]["energy_kwh"] for _, df, *_ in results)
     st.info(

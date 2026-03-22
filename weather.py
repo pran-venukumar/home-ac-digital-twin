@@ -6,10 +6,14 @@ Live weather fetcher using:
 No API key required. Free for personal use.
 """
 
+from collections import defaultdict
+from datetime import date, timedelta
+
 import requests
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 YR_URL = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
+OPEN_METEO_ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 HEADERS = {"User-Agent": "HVAC-DigitalTwin/1.0 (personal use)"}
 
 
@@ -75,3 +79,52 @@ def fetch_current_temp(city: str) -> dict:
         "fetched_at": fetched_at,
         "error": None,
     }
+
+
+def fetch_historical_daily_means(lat: float, lon: float) -> dict:
+    """
+    Fetch 10-year historical daily mean temperatures from the Open-Meteo archive API
+    and return a dict mapping (month, day) -> mean_temp_c averaged across all 10 years.
+
+    Args:
+        lat: Latitude of the location.
+        lon: Longitude of the location.
+
+    Returns:
+        dict[tuple[int, int], float] mapping (month, day) -> mean temperature in °C.
+
+    Raises:
+        requests.HTTPError: if the API returns a non-2xx response.
+    """
+    today = date.today()
+    start_date = date(today.year - 10, today.month, today.day)
+    end_date = today - timedelta(days=1)
+
+    resp = requests.get(
+        OPEN_METEO_ARCHIVE_URL,
+        params={
+            "latitude": lat,
+            "longitude": lon,
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
+            "daily": "temperature_2m_mean",
+            "timezone": "auto",
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+
+    daily = data.get("daily", {})
+    dates = daily.get("time", [])
+    temps = daily.get("temperature_2m_mean", [])
+
+    # Accumulate sum and count per (month, day)
+    accum: dict[tuple[int, int], list[float]] = defaultdict(list)
+    for date_str, temp in zip(dates, temps):
+        if temp is None:
+            continue
+        d = date.fromisoformat(date_str)
+        accum[(d.month, d.day)].append(temp)
+
+    return {key: sum(vals) / len(vals) for key, vals in accum.items()}

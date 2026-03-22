@@ -138,13 +138,18 @@ DEFAULT_UNIT = {
     "model":        "Samsung WindFree 1.5T  (5.28 kW)",
     "capacity_kw":  5.275,
     "cop_rated":    4.0,
-    "floor_area":   320,   # sq ft  (~30 m²)
-    "height":       9.0,   # ft     (~2.7 m)
-    "insulation":   "230mm Red Brick + Plaster (both sides)",
+    "floor_area":   320,   # sq ft — Living Room default
+    "height":       9.0,   # ft
+    "insulation":   "150mm RCC / Bare Concrete",
     "setpoint":     24.0,
     "initial_temp": 30.0,
     "min_ratio":    20,
     "kp":           0.5,
+}
+
+# Per-unit overrides applied on top of DEFAULT_UNIT
+UNIT_OVERRIDES = {
+    1: {"floor_area": 140},   # Bedroom 1 — smaller room
 }
 
 ROOM_NAMES = ["Living Room", "Bedroom 1", "Bedroom 2", "Bedroom 3",
@@ -170,10 +175,14 @@ if "discom_name" not in st.session_state:
 # Initialise per-unit keys
 def _init_unit(i: int):
     name = ROOM_NAMES[i] if i < len(ROOM_NAMES) else f"Room {i+1}"
+    overrides = UNIT_OVERRIDES.get(i, {})
     for field, val in DEFAULT_UNIT.items():
         key = f"u{i}_{field}"
         if key not in st.session_state:
-            st.session_state[key] = (name if field == "room_name" else val)
+            if field == "room_name":
+                st.session_state[key] = name
+            else:
+                st.session_state[key] = overrides.get(field, val)
 
 for i in range(8):   # pre-init up to 8 units
     _init_unit(i)

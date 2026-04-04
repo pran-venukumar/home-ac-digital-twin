@@ -59,10 +59,9 @@ def tariff_for_state(state_name: str) -> tuple[float, str]:
 
     Returns (rate_inr_per_kwh, discom_name).
     """
-    if not state_name:
-        return STATE_TARIFFS["_default"]
-
     state_lower = state_name.lower().strip()
+    if not state_lower:
+        return STATE_TARIFFS["_default"]
     for key, val in STATE_TARIFFS.items():
         if key == "_default":
             continue
